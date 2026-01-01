@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Check Status | Virtual Lab Portal</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Virtual Lab Portal</h1>
+        <p class="subtitle">Check Your Request Status</p>
+      </header>
+
+      <nav>
+        <a href="/">Request Access</a>
+        <a href="/status" class="active">Check Status</a>
+      </nav>
+
+      <main>
+        <div class="card">
+          <h2>Request Status</h2>
+          <p class="info-text">
+            Enter your email address to check the status of your lab access
+            request.
+          </p>
+
+          <form id="statusForm">
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" required />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Check Status</button>
+          </form>
+
+          <div id="statusResult" style="display: none">
+            <div class="status-card">
+              <h3>Request Information</h3>
+
+              <div class="status-row">
+                <span class="label">Name:</span>
+                <span id="studentName"></span>
+              </div>
+
+              <div class="status-row">
+                <span class="label">Lab:</span>
+                <span id="labName"></span>
+              </div>
+
+              <div class="status-row">
+                <span class="label">Status:</span>
+                <span id="status" class="status-badge"></span>
+              </div>
+
+              <div id="labUrlSection" style="display: none">
+                <div class="status-row">
+                  <span class="label">Lab URL:</span>
+                  <a id="labUrl" href="" target="_blank" class="lab-link"></a>
+                </div>
+                <p class="info-text">
+                  Click the link above to access your lab environment.
+                </p>
+              </div>
+
+              <div id="pendingMessage" style="display: none">
+                <p class="info-text">
+                  Your request is being reviewed. You will receive access once
+                  an administrator approves your request.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div id="noRequestMessage" style="display: none">
+            <div class="status-card">
+              <p class="info-text">
+                No active request found for this email address.
+                <a href="/">Submit a new request</a>.
+              </p>
+            </div>
+          </div>
+
+          <div id="messageBox" class="message" style="display: none"></div>
+        </div>
+      </main>
+
+      <footer>
+        <p>
+          &copy; 2025 Virtual Lab Portal. Managed access to secure learning
+          environments.
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      const form = document.getElementById("statusForm");
+      const statusResult = document.getElementById("statusResult");
+      const noRequestMessage = document.getElementById("noRequestMessage");
+      const messageBox = document.getElementById("messageBox");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value.trim();
+
+        // Hide previous results
+        statusResult.style.display = "none";
+        noRequestMessage.style.display = "none";
+        messageBox.style.display = "none";
+
+        try {
+          const response = await fetch(
+            `/api/status?email=${encodeURIComponent(email)}`
+          );
+          const data = await response.json();
+
+          if (response.ok) {
+            if (data.found) {
+              displayStatus(data);
+            } else {
+              noRequestMessage.style.display = "block";
+            }
+          } else {
+            showMessage("error", data.error || "Failed to fetch status");
+          }
+        } catch (error) {
+          showMessage("error", "Network error. Please try again.");
+        }
+      });
+
+      function displayStatus(data) {
+        document.getElementById("studentName").textContent = data.name;
+        document.getElementById("labName").textContent = data.labName;
+
+        const statusBadge = document.getElementById("status");
+        statusBadge.textContent =
+          data.status.charAt(0).toUpperCase() + data.status.slice(1);
+        statusBadge.className = "status-badge " + data.status;
+
+        if (data.status === "approved" && data.labUrl) {
+          document.getElementById("labUrl").href = data.labUrl;
+          document.getElementById("labUrl").textContent = data.labUrl;
+          document.getElementById("labUrlSection").style.display = "block";
+          document.getElementById("pendingMessage").style.display = "none";
+        } else {
+          document.getElementById("labUrlSection").style.display = "none";
+          document.getElementById("pendingMessage").style.display = "block";
+        }
+
+        statusResult.style.display = "block";
+      }
+
+      function showMessage(type, text) {
+        messageBox.textContent = text;
+        messageBox.className =
+          "message " + (type === "success" ? "success" : "error");
+        messageBox.style.display = "block";
+      }
+    </script>
+  </body>
+</html>

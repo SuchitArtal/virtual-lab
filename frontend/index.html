@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lab Access Request | Virtual Lab Portal</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Virtual Lab Portal</h1>
+        <p class="subtitle">Request Access to Hands-On Labs</p>
+      </header>
+
+      <nav>
+        <a href="/" class="active">Request Access</a>
+        <a href="/status">Check Status</a>
+      </nav>
+
+      <main>
+        <div class="card">
+          <h2>Lab Access Request</h2>
+          <p class="info-text">
+            Submit your details to request access to a virtual lab environment.
+            An administrator will review and approve your request.
+          </p>
+
+          <form id="requestForm">
+            <div class="form-group">
+              <label for="name">Full Name *</label>
+              <input type="text" id="name" name="name" required />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email Address *</label>
+              <input type="email" id="email" name="email" required />
+            </div>
+
+            <div class="form-group">
+              <label for="labName">Lab Environment *</label>
+              <select id="labName" name="labName" required>
+                <option value="">Select a lab</option>
+                <option value="Docker Basics">Docker Basics</option>
+              </select>
+            </div>
+
+            <div id="messageBox" class="message" style="display: none"></div>
+
+            <button type="submit" class="btn btn-primary">
+              Submit Request
+            </button>
+          </form>
+        </div>
+      </main>
+
+      <footer>
+        <p>
+          &copy; 2025 Virtual Lab Portal. Managed access to secure learning
+          environments.
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      const form = document.getElementById("requestForm");
+      const messageBox = document.getElementById("messageBox");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const formData = {
+          name: document.getElementById("name").value.trim(),
+          email: document.getElementById("email").value.trim(),
+          labName: document.getElementById("labName").value,
+        };
+
+        try {
+          const response = await fetch("/api/request", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            showMessage(
+              "success",
+              data.message + " You can check your status using your email."
+            );
+            form.reset();
+            setTimeout(() => {
+              window.location.href = "/status";
+            }, 2000);
+          } else {
+            showMessage("error", data.error || "Failed to submit request");
+          }
+        } catch (error) {
+          showMessage("error", "Network error. Please try again.");
+        }
+      });
+
+      function showMessage(type, text) {
+        messageBox.textContent = text;
+        messageBox.className =
+          "message " + (type === "success" ? "success" : "error");
+        messageBox.style.display = "block";
+      }
+    </script>
+  </body>
+</html>

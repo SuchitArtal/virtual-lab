@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard | Virtual Lab Portal</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Virtual Lab Portal</h1>
+        <p class="subtitle">Administrator Dashboard</p>
+      </header>
+
+      <nav>
+        <a href="/admin" class="active">Admin</a>
+      </nav>
+
+      <main>
+        <!-- Login Section -->
+        <div id="loginSection" class="card">
+          <h2>Admin Login</h2>
+          <form id="loginForm">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input type="text" id="username" name="username" required />
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" id="password" name="password" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
+          </form>
+          <div id="loginMessage" class="message" style="display: none"></div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboardSection" style="display: none">
+          <div class="card">
+            <div class="dashboard-header">
+              <h2>Lab Access Requests</h2>
+              <button id="refreshBtn" class="btn btn-secondary">Refresh</button>
+            </div>
+
+            <div id="requestsContainer">
+              <p class="info-text">Loading requests...</p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer>
+        <p>
+          &copy; 2025 Virtual Lab Portal. Managed access to secure learning
+          environments.
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      let adminUsername = "";
+      let adminPassword = "";
+
+      const loginForm = document.getElementById("loginForm");
+      const loginSection = document.getElementById("loginSection");
+      const dashboardSection = document.getElementById("dashboardSection");
+      const loginMessage = document.getElementById("loginMessage");
+      const refreshBtn = document.getElementById("refreshBtn");
+
+      // Handle login
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        adminUsername = document.getElementById("username").value;
+        adminPassword = document.getElementById("password").value;
+
+        try {
+          const response = await fetch(
+            `/api/admin/requests?username=${encodeURIComponent(
+              adminUsername
+            )}&password=${encodeURIComponent(adminPassword)}`
+          );
+
+          if (response.ok) {
+            loginSection.style.display = "none";
+            dashboardSection.style.display = "block";
+            loadRequests();
+          } else {
+            showLoginMessage("error", "Invalid username or password");
+          }
+        } catch (error) {
+          showLoginMessage("error", "Network error. Please try again.");
+        }
+      });
+
+      // Refresh button
+      refreshBtn.addEventListener("click", () => {
+        loadRequests();
+      });
+
+      // Load all requests
+      async function loadRequests() {
+        const container = document.getElementById("requestsContainer");
+        container.innerHTML = '<p class="info-text">Loading requests...</p>';
+
+        try {
+          const response = await fetch(
+            `/api/admin/requests?username=${encodeURIComponent(
+              adminUsername
+            )}&password=${encodeURIComponent(adminPassword)}`
+          );
+          const data = await response.json();
+
+          if (response.ok) {
+            displayRequests(data.requests);
+          } else {
+            container.innerHTML =
+              '<p class="error">Failed to load requests</p>';
+          }
+        } catch (error) {
+          container.innerHTML = '<p class="error">Network error</p>';
+        }
+      }
+
+      // Display requests in table
+      function displayRequests(requests) {
+        const container = document.getElementById("requestsContainer");
+
+        if (requests.length === 0) {
+          container.innerHTML = '<p class="info-text">No requests found.</p>';
+          return;
+        }
+
+        let html =
+          '<div class="table-container"><table class="admin-table"><thead><tr>';
+        html += "<th>Name</th>";
+        html += "<th>Email</th>";
+        html += "<th>Lab</th>";
+        html += "<th>Status</th>";
+        html += "<th>Created</th>";
+        html += "<th>Action</th>";
+        html += "</tr></thead><tbody>";
+
+        requests.forEach((request) => {
+          const date = new Date(request.createdAt).toLocaleDateString();
+          const statusClass =
+            request.status === "approved" ? "approved" : "pending";
+
+          html += "<tr>";
+          html += `<td>${escapeHtml(request.name)}</td>`;
+          html += `<td>${escapeHtml(request.email)}</td>`;
+          html += `<td>${escapeHtml(request.labName)}</td>`;
+          html += `<td><span class="status-badge ${statusClass}">${request.status}</span></td>`;
+          html += `<td>${date}</td>`;
+          html += "<td>";
+
+          if (request.status === "pending") {
+            html += `<div class="approval-form">`;
+            html += `<input type="text" id="url-${request.id}" placeholder="Lab URL" class="url-input">`;
+            html += `<button onclick="approveRequest('${request.id}')" class="btn btn-approve">Approve</button>`;
+            html += `</div>`;
+          } else {
+            html += `<a href="${request.labUrl}" target="_blank" class="lab-link-small">View URL</a>`;
+          }
+
+          html += "</td>";
+          html += "</tr>";
+        });
+
+        html += "</tbody></table></div>";
+        container.innerHTML = html;
+      }
+
+      // Approve request
+      async function approveRequest(requestId) {
+        const urlInput = document.getElementById(`url-${requestId}`);
+        const labUrl = urlInput.value.trim();
+
+        if (!labUrl) {
+          alert("Please enter a lab URL");
+          return;
+        }
+
+        try {
+          const response = await fetch(`/api/admin/approve/${requestId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              username: adminUsername,
+              password: adminPassword,
+              labUrl,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            loadRequests(); // Reload the table
+          } else {
+            alert(data.error || "Failed to approve request");
+          }
+        } catch (error) {
+          alert("Network error. Please try again.");
+        }
+      }
+
+      function showLoginMessage(type, text) {
+        loginMessage.textContent = text;
+        loginMessage.className =
+          "message " + (type === "success" ? "success" : "error");
+        loginMessage.style.display = "block";
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // Make approveRequest available globally
+      window.approveRequest = approveRequest;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "virtual-lab-portal",
+  "version": "1.0.0",
+  "description": "Request-based virtual lab access system with manual approval workflow",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js"
+  },
+  "keywords": [
+    "lab",
+    "virtual-lab",
+    "access-control",
+    "learning-platform"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

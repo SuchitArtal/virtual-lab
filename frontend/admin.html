@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Dashboard | Virtual Lab Portal</title>
+    <title>Admin Dashboard | Docker Virtual Lab</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="container">
       <header>
-        <h1>Virtual Lab Portal</h1>
-        <p class="subtitle">Administrator Dashboard</p>
+        <h1>Docker Virtual Lab</h1>
+        <p class="subtitle">Administration Dashboard</p>
       </header>
 
       <nav>
@@ -21,6 +21,10 @@
         <!-- Login Section -->
         <div id="loginSection" class="card">
           <h2>Admin Login</h2>
+          <p class="info-text">
+            Review and grant lab access to students requesting Docker lab
+            environments.
+          </p>
           <form id="loginForm">
             <div class="form-group">
               <label for="username">Username</label>
@@ -40,7 +44,9 @@
           <div class="card">
             <div class="dashboard-header">
               <h2>Lab Access Requests</h2>
-              <button id="refreshBtn" class="btn btn-secondary">Refresh</button>
+              <button id="refreshBtn" class="btn btn-secondary">
+                Refresh Requests
+              </button>
             </div>
 
             <div id="requestsContainer">
@@ -51,10 +57,7 @@
       </main>
 
       <footer>
-        <p>
-          &copy; 2025 Virtual Lab Portal. Managed access to secure learning
-          environments.
-        </p>
+        <p>Docker Virtual Lab | Hands-on Learning Prototype</p>
       </footer>
     </div>
 
@@ -133,12 +136,12 @@
 
         let html =
           '<div class="table-container"><table class="admin-table"><thead><tr>';
-        html += "<th>Name</th>";
+        html += "<th>Student Name</th>";
         html += "<th>Email</th>";
         html += "<th>Lab</th>";
-        html += "<th>Status</th>";
-        html += "<th>Created</th>";
-        html += "<th>Action</th>";
+        html += "<th>Lab Status</th>";
+        html += "<th>Requested</th>";
+        html += "<th>Access Control</th>";
         html += "</tr></thead><tbody>";
 
         requests.forEach((request) => {
@@ -157,10 +160,10 @@
           if (request.status === "pending") {
             html += `<div class="approval-form">`;
             html += `<input type="text" id="url-${request.id}" placeholder="Lab URL" class="url-input">`;
-            html += `<button onclick="approveRequest('${request.id}')" class="btn btn-approve">Approve</button>`;
+            html += `<button onclick="approveRequest('${request.id}')" class="btn btn-approve">Grant Lab Access</button>`;
             html += `</div>`;
           } else {
-            html += `<a href="${request.labUrl}" target="_blank" class="lab-link-small">View URL</a>`;
+            html += `<a href="${request.labUrl}" target="_blank" class="lab-link-small">Open Docker Lab</a>`;
           }
 
           html += "</td>";

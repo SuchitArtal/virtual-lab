@@ -16,7 +16,7 @@ body {
 
 /* ==================== LAYOUT ==================== */
 .container {
-  max-width: 900px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 20px;
   min-height: 100vh;
@@ -90,6 +90,36 @@ nav a.active {
   font-weight: 600;
   margin-bottom: 10px;
   color: #1a1a1a;
+}
+
+/* ==================== HOW IT WORKS ==================== */
+.how-it-works {
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 25px;
+  margin: 30px 0;
+}
+
+.how-it-works h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #1a1a1a;
+}
+
+.steps-list {
+  list-style-position: inside;
+  color: #666;
+  line-height: 1.8;
+}
+
+.steps-list li {
+  margin-bottom: 10px;
+}
+
+.steps-list li:last-child {
+  margin-bottom: 0;
 }
 
 /* ==================== FORM ==================== */
